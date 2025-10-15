@@ -1,0 +1,19 @@
+transaction_id,transaction_type,amount,date,category,sub_category
+1,Income,160.13,14/10/2025,Apps,Uber
+2,Income,86.25,13/10/2025,Apps,Uber
+3,Income,10.04,13/10/2025,Apps,Uber
+4,Income,16.41,15/10/2025,Apps,99
+5,Income,151.05,13/10/2025,Apps,99
+6,Income,63.5,11/10/2025,Apps,99
+7,Income,300.0,14/10/2025,Shows,Bares e Pubs
+8,Expense,168.38,14/10/2025,Fixed Expenses,Gas
+9,Expense,144.14,13/10/2025,Fixed Expenses,Gym
+10,Expense,80.0,13/10/2025,Fixed Expenses,Gas
+11,Expense,20.0,13/10/2025,Food and Groceries,Others
+12,Expense,42.75,11/10/2025,Food and Groceries,Supermarket
+13,Expense,2.99,10/10/2025,Food and Groceries,Others
+14,Expense,60.73,06/10/2025,Fixed Expenses,Cellphone bill
+15,Expense,57.0,04/10/2025,Utility,Internet
+16,Expense,36.0,04/10/2025,Utility,Electricity
+17,Expense,29.3,01/10/2025,Food and Groceries,Supermarket
+18,Expense,58.18,15/10/2025,Food and Groceries,Supermarket
