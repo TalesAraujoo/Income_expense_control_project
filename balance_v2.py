@@ -1,6 +1,10 @@
 import csv, ast
 from datetime import date, time, datetime, timedelta
+from pathlib import Path
 
+#This sets the csv month file to the current month as a standard...globally
+today = datetime.today()
+month_file = today.strftime("%B").lower() + '.csv'
 
 def show_menu():
     print('\n------ Monthly Balance ------\n')
@@ -20,6 +24,7 @@ def get_option(chosen_option):
             show_menu()
 
         case 2:
+            change_month()
             show_menu()
 
         case 3: 
@@ -30,6 +35,24 @@ def get_option(chosen_option):
             print('Exiting program...')
             print('Great job, keep shit updated!\n')
 
+
+def change_month():
+    
+    global month_file
+    month = 1
+    print('\n------ Change Month ------\n')
+    for x in range(1, 13):
+        fake_date = datetime(2025, x, 1)
+        print(f'{x}. {fake_date.strftime("%B")}')
+    
+    print('')
+    option = input('Choose an option: ')
+
+    fake_date = datetime(2025, int(option), 1)
+    tmp_month_file = fake_date.strftime("%B").lower() + '.csv'
+    month_file = tmp_month_file
+    print(f'\nYou sucessfully changed month file to "{month_file}"')
+    
 
 def get_transaction_type():
     print('\n------ Transaction type ------\n')
@@ -135,8 +158,9 @@ def get_sub_category(transaction_type, category):
                     
 
 def get_transaction_id():
-    with open('october.csv') as csvfile:
-        reader = csv.DictReader(csvfile)
+    with open(f'.\{month_file}') as csvfile:
+        fnames = ['transaction_id','transaction_type','amount','date','category','sub_category']
+        reader = csv.DictReader(csvfile, fieldnames=fnames)
         
         last = 0
         for item in reader:
@@ -194,7 +218,7 @@ def dict_validation(tmp_dict):
 
 
 def add_transaction():
-    with open('october.csv', 'a', newline='') as csvfile: 
+    with open(f'.\{month_file}', 'a', newline='') as csvfile: 
                
         tmp_dict = create_dict()
         final_dict = dict_validation(tmp_dict)
@@ -221,8 +245,9 @@ def show_report():
 
 
 def show_simple_report():
-    with open('october.csv', 'r', newline = '') as csvfile:
-        reader = csv.DictReader(csvfile)
+    with open(f'.\{month_file}', 'r', newline = '') as csvfile:
+        fnames = ['transaction_id','transaction_type','amount','date','category','sub_category']
+        reader = csv.DictReader(csvfile, fieldnames=fnames)
         
         total_income = 0
         total_expenses = 0
@@ -243,8 +268,9 @@ def show_simple_report():
 
 
 def show_detailed_report():
-    with open('october.csv') as csvfile:
-        reader = csv.DictReader(csvfile)
+    with open(f'.\{month_file}') as csvfile:
+        fnames = ['transaction_id','transaction_type','amount','date','category','sub_category']
+        reader = csv.DictReader(csvfile, fieldnames=fnames)
 
         total_apps = 0
         total_uber = 0
@@ -320,13 +346,186 @@ def show_per_period_report():
     if option == '1':
         get_weekly_report()
     elif option == '2':
-        pass
+        get_monthly_report()
+    elif option == '3':
+        get_year_report()
+    elif option == '4':
+        get_specific_date_report()
 
 
 def get_weekly_report():
     today = date.today()
     start_of_week = today - timedelta(days = today.weekday())
-    print(start_of_week)
+    
+    with open(f'.\{month_file}') as csvfile:
+        fnames = ['transaction_id','transaction_type','amount','date','category','sub_category']
+        reader = csv.DictReader(csvfile, fieldnames=fnames)
+
+        total_income = 0
+        total_expenses = 0
+        total_gas = 0
+        total_market = 0
+
+        for row in reader:
+            date_format = '%d/%m/%Y'
+            tmp_parsed_date = datetime.strptime(row['date'], date_format).date()
+
+            if tmp_parsed_date >= start_of_week:
+
+                if row['transaction_type'] == 'Income':
+                    total_income += float(row['amount'])
+                else:
+                    total_expenses += float(row['amount'])
+                    
+                    if row['sub_category'] == 'Gas':
+                        total_gas += float(row['amount'])
+                    elif row['sub_category'] == 'Supermarket':
+                        total_market += float(row['amount'])
+        
+        print('\n------ Weekly Report ------\n')
+        print(f'{start_of_week.strftime('%d/%m/%y')} - {today.strftime('%d/%m/%y')}')
+        print('')
+        print(f'  Total income: R$ {total_income:.2f}')
+        print(f'Total Expenses: R$ {total_expenses:.2f}')
+        print(f'           Gas: R$ {total_gas:.2f}')
+        print(f'   Supermarket: R$ {total_market:.2f}')
+        print('------------------------')
+        print(f'Current Balance: R$ {(total_income - total_expenses):.2f}')
+
+
+def get_monthly_report():
+    today = date.today()
+    start_of_month = today - timedelta(days = today.day - 1)
+    
+    with open(f'.\{month_file}') as csvfile:
+        fnames = ['transaction_id','transaction_type','amount','date','category','sub_category']
+        reader = csv.DictReader(csvfile, fieldnames=fnames)
+
+        total_income = 0
+        total_expenses = 0
+        total_gas = 0
+        total_market = 0 
+        
+        for row in reader:
+            date_format = '%d/%m/%Y'
+            parsed_row_date = datetime.strptime(row['date'], date_format).date()
+
+            if parsed_row_date >= start_of_month:
+
+                if row['transaction_type'] == 'Income':
+                    total_income += float(row['amount'])
+                else:
+                    total_expenses += float(row['amount'])
+                    if row['sub_category'] == 'Gas':
+                        total_gas += float(row['amount'])
+                    elif row['sub_category'] == 'Supermarket':
+                        total_market += float(row['amount'])
+
+        print('\n------ Monthly Report ------\n')
+        print(f'{start_of_month.strftime('%d/%m/%y')} - {today.strftime('%d/%m/%y')}')
+        print('')
+        print(f'  Total income: R$ {total_income:.2f}')
+        print(f'Total Expenses: R$ {total_expenses:.2f}')
+        print(f'           Gas: R$ {total_gas:.2f}')
+        print(f'   Supermarket: R$ {total_market:.2f}')
+        print('------------------------')
+        print(f'Current Balance: R$ {(total_income - total_expenses):.2f}')    
+
+
+def get_year_report():
+    today = date.today()
+
+    total_income = 0
+    total_expenses = 0
+    total_gas = 0
+    total_market = 0
+    
+    for x in range(1, 13):
+        fake_date = datetime(2025, x, 1)
+        tmp_month_file = fake_date.strftime("%B").lower() + '.csv'
+        file_path = Path(f'{tmp_month_file}')
+    
+        if file_path.exists():
+            with open(f'./{tmp_month_file}') as csvfile:
+                fnames = ['transaction_id','transaction_type','amount','date','category','sub_category']
+                reader = csv.DictReader(csvfile, fieldnames=fnames)
+
+                for row in reader:
+                    if row['transaction_type'] == 'Income':
+                        total_income += float(row['amount'])
+                    
+                    elif row['transaction_type'] == 'Expense':
+                        total_expenses += float(row['amount'])
+                    
+                        if row['sub_category'] == 'Gas':
+                            total_gas += float(row['amount'])
+                        elif row['sub_category'] == 'Supermarket':
+                            total_market += float(row['amount'])
+
+    print(f'\n------ Report of YEAR {today.strftime("%Y")} ------\n')
+    print(f'  Total income: R$ {total_income:.2f}')
+    print(f'Total expenses: R$ {total_expenses:.2f}')
+    print(f'     total gas: R$ {total_gas:.2f}')
+    print(f'  total market: R$ {total_market:.2f}')
+    print('------------------------')
+    print(f'Profitability:  R$ {(total_income - total_expenses):.2f}')
+
+
+def get_specific_date_report():
+
+    print('\n------ Specific date Reports ------\n')
+    print('Tip: Type the date you want or leave it blank to get the most recent or latest date.\n')
+    start_date = input('Start date (dd-mm-yyyy): ')
+    end_date = input('End date (dd-mm-yyyy): ')
+
+    if start_date == '' and end_date == '':
+        start_date = datetime(2025, 1, 1)
+        end_date = datetime.today()
+
+        specific_date_calc(start_date, end_date)
+    
+    elif end_date == '':
+        tmp_start_date = datetime.strptime(start_date, "%d-%m-%Y")
+        end_date = datetime.today()
+
+        specific_date_calc(tmp_start_date, end_date)
+
+
+def specific_date_calc(start_date, end_date):
+
+    total_income = 0
+    total_expenses = 0
+    total_gas = 0
+    total_market = 0
+    
+    for x in range(start_date.month, end_date.month + 1):
+        fake_date = datetime(2025, x, 1)
+        tmp_month_file = fake_date.strftime("%B").lower() + '.csv'
+        file_path = Path(f'{tmp_month_file}')
+
+        if file_path.exists():
+
+            with open(f'./{tmp_month_file}') as csvfile:
+                fnames = ['transaction_id','transaction_type','amount','date','category','sub_category']
+                reader = csv.DictReader(csvfile, fieldnames=fnames)
+
+                for row in reader:
+                    if row['transaction_type'] == 'Income':
+                        total_income += float(row['amount'])
+                    elif row['transaction_type'] == 'Expense':
+                        total_expenses += float(row['amount'])
+                        if row['sub_category'] == 'Gas':
+                            total_gas += float(row['amount'])
+                        elif row['sub_category'] == 'Supermarket':
+                            total_market += float(row['amount'])
+    
+    print(f'\n------ {start_date.strftime("%d-%m-%y")} - {end_date.strftime("%d-%m-%y")} ------\n')
+    print(f'  Total income: R$ {total_income:.2f}')
+    print(f'Total expenses: R$ {total_expenses:.2f}')
+    print(f'     total gas: R$ {total_gas:.2f}')
+    print(f'  total market: R$ {total_market:.2f}')
+    print('------------------------')
+    print(f'Profitability:  R$ {(total_income - total_expenses):.2f}') 
     
 
 show_menu()
