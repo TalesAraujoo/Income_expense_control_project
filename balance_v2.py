@@ -100,7 +100,7 @@ def get_category(transaction_type):
     else:
         file = 'income'
 
-    with open(f'.\Archive_manipulation\{file}_database_v2.csv') as csvfile:
+    with open(f'.//{file}_database_v2.csv') as csvfile:
         fnames = ['category', 'sub_category']
         reader = csv.DictReader(csvfile, fieldnames=fnames)
 
@@ -131,7 +131,7 @@ def get_sub_category(transaction_type, category):
     else:
         file = 'income'
 
-    with open(f'.\Archive_manipulation\{file}_database_v2.csv') as csvfile:
+    with open(f'.//{file}_database_v2.csv') as csvfile:
         fnames = ['category', 'sub_category']
         reader = csv.DictReader(csvfile, fieldnames=fnames)
 
@@ -218,7 +218,7 @@ def dict_validation(tmp_dict):
 
 
 def add_transaction():
-    with open(f'.\{month_file}', 'a', newline='') as csvfile: 
+    with open(f'.//{month_file}', 'a', newline='') as csvfile: 
                
         tmp_dict = create_dict()
         final_dict = dict_validation(tmp_dict)
@@ -246,8 +246,7 @@ def show_report():
 
 def show_simple_report():
     with open(f'.\{month_file}', 'r', newline = '') as csvfile:
-        fnames = ['transaction_id','transaction_type','amount','date','category','sub_category']
-        reader = csv.DictReader(csvfile, fieldnames=fnames)
+        reader = csv.DictReader(csvfile)
         
         total_income = 0
         total_expenses = 0
@@ -269,8 +268,7 @@ def show_simple_report():
 
 def show_detailed_report():
     with open(f'.\{month_file}') as csvfile:
-        fnames = ['transaction_id','transaction_type','amount','date','category','sub_category']
-        reader = csv.DictReader(csvfile, fieldnames=fnames)
+        reader = csv.DictReader(csvfile)
 
         total_apps = 0
         total_uber = 0
@@ -313,25 +311,26 @@ def show_detailed_report():
 
         total_apps = total_uber + total_99 + total_indrive
 
-        print('\n--- INCOME ---\n')
-        print(f'TOTAL APPs:  R$ {total_apps:.2f}')
-        print(f'- Uber:    R$ {total_uber:.2f}')
-        print(f'- 99:      R$ {total_99:.2f}')
-        print(f'- inDrive: R$ {total_indrive:.2f}')
+        print('\n------ INCOME ------\n')
+        print(f'          TOTAL APPs: R$ {total_apps:.2f}')
+        print(f'                Uber: R$ {total_uber:.2f}')
+        print(f'                  99: R$ {total_99:.2f}')
+        print(f'             inDrive: R$ {total_indrive:.2f}')
         print('')
-        print(f'- Shows:   R$ {total_concerts:.2f}')
+        print(f'               Shows: R$ {total_concerts:.2f}')
         print('')
-        print(f'TOTAL INCOME: R$ {(total_apps + total_concerts):.2f}')
-        print('\n--- EXPENSES ---\n')
-        print(f'- Utilities:          R$ {total_utilities:.2f}')
+        print(f'        TOTAL INCOME: R$ {(total_apps + total_concerts):.2f}')
+        print('\n------ EXPENSES ------\n')
+        print(f'           Utilities: R$ {total_utilities:.2f}')
         print(f'- Food and Groceries: R$ {total_food_groceries:.2f}')
-        print(f'     - Supermarket:   R$ {total_market:.2f}')
-        print(f'- Fixed Expenses:     R$ {total_fixed_expenses:.2f}')
-        print(f'     - Gas:           R$ {total_gas:.2f}')
-        print(f'- Entertainment:      R$ {total_entertainment:.2f}')
+        print(f'         Supermarket: R$ {total_market:.2f}')
+        print(f'      Fixed Expenses: R$ {total_fixed_expenses:.2f}')
+        print(f'                 Gas: R$ {total_gas:.2f}')
+        print(f'       Entertainment: R$ {total_entertainment:.2f}')
         print('')
-        print(f'TOTAL EXPENSES:       R$ {(total_utilities + total_fixed_expenses + total_entertainment + total_food_groceries):.2f}')
-
+        print(f'      TOTAL EXPENSES: R$ {(total_utilities + total_fixed_expenses + total_entertainment + total_food_groceries):.2f}')
+        print('-------------------')
+        print(f'     CURRENT BALANCE: R$ {((total_apps + total_concerts) - (total_utilities + total_food_groceries + total_entertainment + total_fixed_expenses)):.2f}')
 
 def show_per_period_report():
     print('\n------ Choose a period ------\n')
@@ -358,8 +357,7 @@ def get_weekly_report():
     start_of_week = today - timedelta(days = today.weekday())
     
     with open(f'.\{month_file}') as csvfile:
-        fnames = ['transaction_id','transaction_type','amount','date','category','sub_category']
-        reader = csv.DictReader(csvfile, fieldnames=fnames)
+        reader = csv.DictReader(csvfile)
 
         total_income = 0
         total_expenses = 0
@@ -398,8 +396,7 @@ def get_monthly_report():
     start_of_month = today - timedelta(days = today.day - 1)
     
     with open(f'.\{month_file}') as csvfile:
-        fnames = ['transaction_id','transaction_type','amount','date','category','sub_category']
-        reader = csv.DictReader(csvfile, fieldnames=fnames)
+        reader = csv.DictReader(csvfile)
 
         total_income = 0
         total_expenses = 0
@@ -447,8 +444,7 @@ def get_year_report():
     
         if file_path.exists():
             with open(f'./{tmp_month_file}') as csvfile:
-                fnames = ['transaction_id','transaction_type','amount','date','category','sub_category']
-                reader = csv.DictReader(csvfile, fieldnames=fnames)
+                reader = csv.DictReader(csvfile)
 
                 for row in reader:
                     if row['transaction_type'] == 'Income':
@@ -489,6 +485,18 @@ def get_specific_date_report():
         end_date = datetime.today()
 
         specific_date_calc(tmp_start_date, end_date)
+    
+    elif start_date == '':
+        start_date = datetime(2025, 1, 1)
+        end_date = datetime.strptime(end_date, "%d-%m-%Y")
+
+        specific_date_calc(start_date, end_date)
+    
+    else:
+        start_date = datetime.strptime(start_date, "%d-%m-%Y")
+        end_date = datetime.strptime(end_date, "%d-%m-%Y")
+
+        specific_date_calc(start_date, end_date)
 
 
 def specific_date_calc(start_date, end_date):
@@ -499,6 +507,7 @@ def specific_date_calc(start_date, end_date):
     total_market = 0
     
     for x in range(start_date.month, end_date.month + 1):
+
         fake_date = datetime(2025, x, 1)
         tmp_month_file = fake_date.strftime("%B").lower() + '.csv'
         file_path = Path(f'{tmp_month_file}')
@@ -506,18 +515,20 @@ def specific_date_calc(start_date, end_date):
         if file_path.exists():
 
             with open(f'./{tmp_month_file}') as csvfile:
-                fnames = ['transaction_id','transaction_type','amount','date','category','sub_category']
-                reader = csv.DictReader(csvfile, fieldnames=fnames)
+                reader = csv.DictReader(csvfile)
 
                 for row in reader:
-                    if row['transaction_type'] == 'Income':
-                        total_income += float(row['amount'])
-                    elif row['transaction_type'] == 'Expense':
-                        total_expenses += float(row['amount'])
-                        if row['sub_category'] == 'Gas':
-                            total_gas += float(row['amount'])
-                        elif row['sub_category'] == 'Supermarket':
-                            total_market += float(row['amount'])
+                    tmp_parsed_date = datetime.strptime(row['date'], "%d/%m/%Y")
+                    if tmp_parsed_date >= start_date and tmp_parsed_date <= end_date:
+                    
+                        if row['transaction_type'] == 'Income':
+                            total_income += float(row['amount'])
+                        elif row['transaction_type'] == 'Expense':
+                            total_expenses += float(row['amount'])
+                            if row['sub_category'] == 'Gas':
+                                total_gas += float(row['amount'])
+                            elif row['sub_category'] == 'Supermarket':
+                                total_market += float(row['amount'])
     
     print(f'\n------ {start_date.strftime("%d-%m-%y")} - {end_date.strftime("%d-%m-%y")} ------\n')
     print(f'  Total income: R$ {total_income:.2f}')
