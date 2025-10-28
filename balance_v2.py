@@ -1,4 +1,4 @@
-import csv, ast
+import csv, ast, calendar
 from datetime import date, time, datetime, timedelta
 from pathlib import Path
 
@@ -6,14 +6,32 @@ from pathlib import Path
 today = datetime.today()
 month_file = today.strftime("%B").lower() + '.csv'
 
+
 def show_menu():
     print('\n------ Monthly Balance ------\n')
     print('1. Add Transaction')
     print('2. Change month')
     print('3. Reports')
-    print('4. Exit\n')
+    print('4. Test')
+    print('5. Exit\n')
     option = input('Choose an option: ')
     get_option(int(option))
+
+
+def show_main_menu():
+
+    with open('main_menu.csv', 'r', newline='', encoding='utf-8') as csvfile:
+        tmp_reader = csv.reader(csvfile)
+        print('\n------ Monthly Balance ------\n')
+        i = 1
+        for item in tmp_reader:
+            print(f'{i}. {item[0]}')
+            i += 1
+        print('9. Go back')
+        print('0. Go Foward')
+        print('')
+        option = input('Choose an option: ')
+        get_option(int(option))
 
 
 def get_option(chosen_option):
@@ -30,10 +48,22 @@ def get_option(chosen_option):
         case 3: 
             show_report()
             show_menu()
-            
+
         case 4:
+            run_test()
+            show_menu()
+
+        case 5:
             print('Exiting program...')
             print('Great job, keep shit updated!\n')
+
+
+def create_month_file(month_name):
+    with open(month_name, 'w', newline='', encoding='utf-8') as csvfile:
+        fnames = ['transaction_id', 'transaction_type', 'amount', 'date', 'category', 'sub_category']
+        writer = csv.writer(csvfile)
+        writer.writerow(fnames)
+        print(f'\nYou sucessfully CREATED month file to "{month_file}"')
 
 
 def change_month():
@@ -51,19 +81,29 @@ def change_month():
     fake_date = datetime(2025, int(option), 1)
     tmp_month_file = fake_date.strftime("%B").lower() + '.csv'
     month_file = tmp_month_file
-    print(f'\nYou sucessfully changed month file to "{month_file}"')
-    
+
+    file_path = Path(month_file)
+
+    if file_path.exists():
+        print(f'\nYou sucessfully changed month file to "{month_file}"')
+    else:
+        create_month_file(month_file)
+
 
 def get_transaction_type():
     print('\n------ Transaction type ------\n')
     print('1. Income')
-    print('2. Expense\n')
+    print('2. Expense')
+    print('')
+    print('0. Main menu\n')
     chosen_option = input('Choose your option: ')
     
     if chosen_option == '1':
         return 'Income'
     elif chosen_option == '2':
         return 'Expense'
+    elif chosen_option == '0':
+        show_menu()
     
 
 def get_amount():
@@ -80,19 +120,23 @@ def get_date():
     print('1. Today')
     print('2. Different date')
     print('')
+    print('0. Main Menu')
+    print('')
     chosen_option = input('Choose your option: ')
 
     if chosen_option == '1':
         tmp_date = date.today().strftime("%d/%m/%Y")
         return tmp_date
-    else:
+    elif chosen_option == '2':
         print('\n------ Different day ------\n')
         date_string = input('When was it (dd-mm-yyyy)? ')
         date_format = "%d-%m-%Y"
         parsed_date = datetime.strptime(date_string, date_format).date()
         tmp_date = parsed_date.strftime("%d/%m/%Y")
         return tmp_date
- 
+    elif chosen_option == '0':
+        show_menu()
+
 
 def get_category(transaction_type):
     if transaction_type == 'Expense':
@@ -111,12 +155,16 @@ def get_category(transaction_type):
             print(f'{count}. {item["category"]}')
             tmp_list.append(item['category'])
             count += 1
-
+        
+        print('')
+        print('0. Main menu')
         print('')
         
         count = 1
         option = input('Choose an option: ')
-        
+        if option == '0':
+            show_menu()
+
         for item in tmp_list:
             if int(option) == count:
                 return item
@@ -145,10 +193,16 @@ def get_sub_category(transaction_type, category):
                 for item in tmp_menu_list:
                     print(f'{count}. {item}')
                     count += 1
+                
+                print('')
+                print('0. Main menu')
 
                 print('')
                 count = 1
                 option = input('Choose an option: ')
+                if option == '0':
+                    show_menu()
+
                 for item in tmp_menu_list:
 
                     if int(option) == count:
@@ -196,7 +250,7 @@ def dict_validation(tmp_dict):
     while True:
         print('\n------ Validate the info below ------\n')
     
-        print(f'Amount: {tmp_dict['amount']}')
+        print(f'Amount: R$ {(tmp_dict['amount']):.2f}')
         print(f'Transaction Type: {tmp_dict['transaction_type']}')
         print(f'Date: {tmp_dict['date']}')
         print(f'Category: {tmp_dict['category']}')
@@ -254,7 +308,7 @@ def show_simple_report():
         for row in reader:
             if row['transaction_type'] == 'Income':
                 total_income += float(row['amount'])
-            else:
+            elif row['transaction_type'] == 'Expense':
                 total_expenses += float(row['amount'])
 
         print('\n------ Report ------\n')
@@ -331,10 +385,13 @@ def show_detailed_report():
         print(f'      TOTAL EXPENSES: R$ {(total_utilities + total_fixed_expenses + total_entertainment + total_food_groceries):.2f}')
         print('-------------------')
         print(f'     CURRENT BALANCE: R$ {((total_apps + total_concerts) - (total_utilities + total_food_groceries + total_entertainment + total_fixed_expenses)):.2f}')
+        print('')
+        input('Press ENTER to procced...')
+
 
 def show_per_period_report():
     print('\n------ Choose a period ------\n')
-    print('1. This week')
+    print('1. Weekly report')
     print('2. This month')
     print('3. This year')
     print('4. Specific date')
@@ -353,42 +410,136 @@ def show_per_period_report():
 
 
 def get_weekly_report():
-    today = date.today()
-    start_of_week = today - timedelta(days = today.weekday())
     
     with open(f'.\{month_file}') as csvfile:
         reader = csv.DictReader(csvfile)
 
+
+        #this section gets an ordered list
+        tmp_ordered_dictlist = []
+        date_format = '%d/%m/%Y'
+        last_highest = 0
+
+        for item in reader:
+            parsed_item = datetime.strptime(item['date'], date_format).date()
+            
+            if not tmp_ordered_dictlist:
+                tmp_ordered_dictlist.append(item)
+            
+            else:
+                for item_list in tmp_ordered_dictlist:
+                    parsed_item_list = datetime.strptime(item_list['date'], date_format ).date()
+
+                    if parsed_item == parsed_item_list:
+                        last_highest = tmp_ordered_dictlist.index(item_list)
+                    elif parsed_item > parsed_item_list:
+                        last_highest = tmp_ordered_dictlist.index(item_list) + 1
+                    
+                
+                if last_highest > len(tmp_ordered_dictlist) - 1:
+                    tmp_ordered_dictlist.append(item)
+                else:
+                    tmp_ordered_dictlist.insert(last_highest, item)
+                
+                last_highest = 0
+            
+        
+        #this section gets info based on the week from monday to sunday
+        month = datetime.strptime('01' +  '/' + month_file.strip('.csv') + '/' + '2025', '%d/%B/%Y').date() 
+        print(month)
+        print(type(month))
+        week_count = 1
+        first_monthday = datetime.strptime(('01/' + str(month.month) + '/' + str(month.year)), date_format).date()
+        _, last_monthday = calendar.monthrange(month.year, month.month)
+        tmp_weekday = first_monthday.weekday()
+        print(f'\n----------- {month.strftime("%B")} ------------\n')
+        
         total_income = 0
-        total_expenses = 0
+        total_expenses = 0 
         total_gas = 0
         total_market = 0
+        final_income = 0
+        final_expense = 0 
+        final_gas = 0
+        final_market = 0
 
-        for row in reader:
-            date_format = '%d/%m/%Y'
-            tmp_parsed_date = datetime.strptime(row['date'], date_format).date()
+        for day in range(1, last_monthday+1):
+            
+            if day > last_monthday:
+                break
+            else:
+                current_day = datetime.strptime((str(day) + '/' + str(month.month) + '/' + str(month.year)), date_format).date()
+                tomorrow = current_day + timedelta(days=1)
 
-            if tmp_parsed_date >= start_of_week:
 
-                if row['transaction_type'] == 'Income':
-                    total_income += float(row['amount'])
-                else:
-                    total_expenses += float(row['amount'])
-                    
-                    if row['sub_category'] == 'Gas':
-                        total_gas += float(row['amount'])
-                    elif row['sub_category'] == 'Supermarket':
-                        total_market += float(row['amount'])
-        
-        print('\n------ Weekly Report ------\n')
-        print(f'{start_of_week.strftime('%d/%m/%y')} - {today.strftime('%d/%m/%y')}')
+            for item_list in tmp_ordered_dictlist:
+                
+                parsed_item_list = datetime.strptime(item_list['date'], date_format).date()
+                if parsed_item_list == current_day:
+
+                    if item_list['transaction_type'] == 'Income':
+                        total_income += float(item_list['amount'])
+                        final_income += float(item_list['amount'])
+                   
+                    elif item_list['transaction_type'] == 'Expense':
+                        total_expenses += float(item_list['amount'])
+                        final_expense += float(item_list['amount'])
+
+                        if item_list['sub_category'] == 'Gas':
+                            total_gas += float(item_list['amount'])
+                            final_gas += float(item_list['amount'])
+                        elif item_list['sub_category'] == 'Supermarket':
+                            total_market += float(item_list['amount'])
+                            final_market += float(item_list['amount'])
+                
+                elif parsed_item_list > current_day:
+                    break
+
+            if current_day.weekday() == 6:
+                end_week = current_day.strftime(date_format)
+                start_week = (current_day - timedelta(days=6))
+                
+                
+                if start_week < first_monthday:
+                    start_week = first_monthday
+                
+                print(f'------------ Week {week_count} ------------')
+                print(f'--- {start_week.strftime(date_format)} to {end_week} ---\n')
+                print(f'Total income:      R$ {total_income:.2f}')
+                print(f'Total expenses:    R$ {total_expenses:.2f}')
+                print(f'Total gas:         R$ {total_gas:.2f}')
+                print(f'Total Supermarket: R$ {total_market:.2f}')
+                print(f'--------------------------------')
+                print(f'Profitability:     R$ {(total_income - total_expenses):.2f}')
+                print('')
+                
+                week_count += 1
+                total_income = 0
+                total_expenses = 0 
+                total_gas = 0
+                total_market = 0
+
+            elif tomorrow.day == 1:    
+                start_week = current_day - timedelta(days=current_day.weekday())
+                print(f'------------ Week {week_count} ------------')
+                print(f'--- {start_week.strftime(date_format)} to {current_day.strftime(date_format)} ---\n')
+                print(f'Total income:      R$ {total_income:.2f}')
+                print(f'Total expenses:    R$ {total_expenses:.2f}')
+                print(f'Total gas:         R$ {total_gas:.2f}')
+                print(f'Total Supermarket: R$ {total_market:.2f}')
+                print(f'--------------------------------')
+                print(f'Profitability:     R$ {(total_income - total_expenses):.2f}')
+                print('\n')
+                
+
+        print(f"{month.strftime("%B")}'s income:        R$ {final_income:.2f}")
+        print(f"{month.strftime("%B")}'s expenses:      R$ {final_expense:.2f} ")
+        print(f"{month.strftime("%B")}'s Gas:           R$ {final_gas:.2f}")
+        print(f"{month.strftime("%B")}'s Supermarket:   R$ {final_market:.2f}")
+        print(f"{month.strftime("%B")}'s Profitability: R$ {(final_income - final_expense):.2f}")
         print('')
-        print(f'  Total income: R$ {total_income:.2f}')
-        print(f'Total Expenses: R$ {total_expenses:.2f}')
-        print(f'           Gas: R$ {total_gas:.2f}')
-        print(f'   Supermarket: R$ {total_market:.2f}')
-        print('------------------------')
-        print(f'Current Balance: R$ {(total_income - total_expenses):.2f}')
+
+        input('Press ENTER to continue...')
 
 
 def get_monthly_report():
@@ -426,7 +577,9 @@ def get_monthly_report():
         print(f'           Gas: R$ {total_gas:.2f}')
         print(f'   Supermarket: R$ {total_market:.2f}')
         print('------------------------')
-        print(f'Current Balance: R$ {(total_income - total_expenses):.2f}')    
+        print(f'Current Balance: R$ {(total_income - total_expenses):.2f}')
+        print('')
+        input('Press ENTER to procced...')
 
 
 def get_year_report():
@@ -465,6 +618,7 @@ def get_year_report():
     print(f'  total market: R$ {total_market:.2f}')
     print('------------------------')
     print(f'Profitability:  R$ {(total_income - total_expenses):.2f}')
+    input('Press ENTER to procced...')
 
 
 def get_specific_date_report():
@@ -537,6 +691,11 @@ def specific_date_calc(start_date, end_date):
     print(f'  total market: R$ {total_market:.2f}')
     print('------------------------')
     print(f'Profitability:  R$ {(total_income - total_expenses):.2f}') 
-    
+    input('Press ENTER to procced...') 
+
+
+def run_test():
+    show_main_menu()
+
 
 show_menu()
