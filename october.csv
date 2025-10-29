@@ -37,3 +37,7 @@ transaction_id,transaction_type,amount,date,category,sub_category
 36,Expense,300.0,27/10/2025,Fixed Expenses,Car payment37,Income,20.6,27/10/2025,Apps,99
 37,Income,20.6,27/10/2025,Apps,99
 38,Expense,24.25,27/10/2025,Food and Groceries,Supermarket
+39,Income,95.68,28/10/2025,Apps,Uber
+40,Income,38.5,28/10/2025,Apps,99
+41,Expense,130.6,28/10/2025,Fixed Expenses,Gas
+42,Expense,13.23,28/10/2025,Entertainment,Others
